@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 @Service
 public class ImageProcessor extends Processors {
@@ -148,56 +149,26 @@ public class ImageProcessor extends Processors {
 
     public  BufferedImage applyFilter(BufferedImage originalFile) {
         BufferedImage finalImage = new BufferedImage(originalFile.getWidth(), originalFile.getHeight(), BufferedImage.TYPE_INT_ARGB);
-
-        Color px1, px2, px3, px4, px5, px6, px7, px8, px9;
+        ArrayList<Color> neighbors = new ArrayList<>();
 
         for(int row = 1; row < originalFile.getWidth() - 1; row++) {
             for(int col = 1; col < originalFile.getHeight() - 1; col++) {
-                px1 = new Color(originalFile.getRGB(row - 1, col - 1));
-                px2 = new Color(originalFile.getRGB(row - 1, col));
-                px3 = new Color(originalFile.getRGB(row - 1, col + 1));
 
-                px4 = new Color(originalFile.getRGB(row, col - 1));
-                px5 = new Color(originalFile.getRGB(row , col));
-                px6 = new Color(originalFile.getRGB(row, col + 1));
+                for (int startRow = -1; startRow <=1; startRow++) {
+                    for (int startCol = -1; startCol <=1; startCol++) {
+                        neighbors.add(new Color(originalFile.getRGB(row + startRow, col + startCol)));
+                    }
+                }
 
-                px7 = new Color(originalFile.getRGB(row + 1, col - 1));
-                px8 = new Color(originalFile.getRGB(row + 1, col));
-                px9 = new Color(originalFile.getRGB(row + 1, col + 1));
+                int valueR = 0;
+                int valueG = 0;
+                int valueB = 0;
 
-
-                int valueR =
-                    (filter[0]*px1.getRed()) +
-                    (filter[1]*px2.getRed()) +
-                    (filter[2]*px3.getRed()) +
-                    (filter[3]*px4.getRed()) +
-                    (filter[4]*px5.getRed()) +
-                    (filter[5]*px6.getRed()) +
-                    (filter[6]*px7.getRed()) +
-                    (filter[7]*px8.getRed()) +
-                    (filter[8]*px9.getRed());
-
-                int valueG =
-                        (filter[0]*px1.getGreen()) +
-                        (filter[1]*px2.getGreen()) +
-                        (filter[2]*px3.getGreen()) +
-                        (filter[3]*px4.getGreen()) +
-                        (filter[4]*px5.getGreen()) +
-                        (filter[5]*px6.getGreen()) +
-                        (filter[6]*px7.getGreen()) +
-                        (filter[7]*px8.getGreen()) +
-                        (filter[8]*px9.getGreen());
-
-                int valueB =
-                    (filter[0]*px1.getBlue()) +
-                    (filter[1]*px2.getBlue()) +
-                    (filter[2]*px3.getBlue()) +
-                    (filter[3]*px4.getBlue()) +
-                    (filter[4]*px5.getBlue()) +
-                    (filter[5]*px6.getBlue()) +
-                    (filter[6]*px7.getBlue()) +
-                    (filter[7]*px8.getBlue()) +
-                    (filter[8]*px9.getBlue());
+                for (int i = 0; i < filter.length; i++) {
+                    valueR += filter[i] * neighbors.get(i).getRed();
+                    valueG += filter[i] * neighbors.get(i).getGreen();
+                    valueB += filter[i] * neighbors.get(i).getBlue();
+                }
 
                 if (valueR > 255) valueR = 255;
                 if (valueG > 255) valueG = 255;
@@ -209,6 +180,7 @@ public class ImageProcessor extends Processors {
 
                 Color finalColor = new Color(valueR, valueG, valueB);
                 finalImage.setRGB(row, col, finalColor.getRGB());
+                neighbors.clear();
             }
         }
         return finalImage;
